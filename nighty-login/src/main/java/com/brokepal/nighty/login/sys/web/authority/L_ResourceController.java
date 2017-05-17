@@ -21,11 +21,11 @@ public class L_ResourceController {
     @Autowired
     private L_ResourceService resourceService;
 
-    @RequestMapping(value = "/allResources")
+    @RequestMapping(value = "/allAdminResources")
     @ResponseBody
     public ResponseEntity logout(HttpServletResponse response) {
         response.setHeader("Access-Control-Allow-Origin","*");
 
-        return new ResponseEntity(OperationResult.buildSuccessResult(resourceService.getAll()), HttpStatus.OK);
+        return new ResponseEntity(OperationResult.buildSuccessResult(resourceService.getAllAdminResources()), HttpStatus.OK);
     }
 }

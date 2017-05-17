@@ -10,6 +10,7 @@
         a.id AS "id",
         a.name AS "name",
         a.type AS "type",
+        a.parent_id AS "parentId",
         a.description AS "description"
     </sql>
 

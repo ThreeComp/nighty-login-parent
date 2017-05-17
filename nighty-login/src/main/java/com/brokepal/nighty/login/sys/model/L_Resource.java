@@ -11,9 +11,18 @@ public class L_Resource implements Serializable {
     private String id;
     private String name;
     private String type;
+    private String parentId;
     private String description;
 
     public L_Resource() {}
+
+    public String getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
+    }
 
     public String getType() {
         return type;
@@ -51,6 +60,7 @@ public class L_Resource implements Serializable {
         private String id;
         private String name;
         private String type;
+        private String parentId;
         private String description;
 
         public Builder id(String val){
@@ -65,6 +75,10 @@ public class L_Resource implements Serializable {
             type = val;
             return this;
         }
+        public Builder parentId(String val){
+            parentId = val;
+            return this;
+        }
         public Builder description(String val){
             description = val;
             return this;
@@ -74,6 +88,7 @@ public class L_Resource implements Serializable {
             resource.id = this.id;
             resource.name = this.name;
             resource.type = this.type;
+            resource.parentId = this.parentId;
             resource.description = this.description;
             return resource;
         }

@@ -19,8 +19,8 @@ public class L_ResourceService {
     @Autowired
     private L_ResourceDao resourceDao;
 
-    public List<L_Resource> getAll(){
-        return resourceDao.findList(new L_Resource());
+    public List<L_Resource> getAllAdminResources(){
+        return resourceDao.findList(new L_Resource.Builder().type("1").build());
     }
 
 }
