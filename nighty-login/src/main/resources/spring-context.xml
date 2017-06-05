@@ -13,4 +13,6 @@
 		<context:exclude-filter type="annotation"
 								expression="org.springframework.web.bind.annotation.ControllerAdvice" />
 	</context:component-scan>
+
+	<bean id="realm" class="com.brokepal.nighty.login.sys.boite.UserRealm"></bean>
 </beans>

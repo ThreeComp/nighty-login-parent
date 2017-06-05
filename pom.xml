@@ -253,6 +253,14 @@
             <version>${mail.version}</version>
         </dependency>
 
+
+        <!-- boite安全框架 -->
+        <dependency>
+            <groupId>com.brokepal</groupId>
+            <artifactId>boite</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
     </dependencies>
 
 </project>

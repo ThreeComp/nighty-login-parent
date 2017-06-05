@@ -113,6 +113,14 @@ public class L_UserService {
         }
     }
 
+    public L_User getUserByUsernameOrEmail(String s){
+        L_User user = getUserByUsername(s);
+        if (user == null){
+            user = getUserByEmail(s);
+        }
+        return user;
+    }
+
     public void setDefaultRolesAndResToUser(L_User user){
         List<L_Role> roles = roleDao.findList(new L_Role.Builder().name("guest").build());
         List<L_Resource> resources = new ArrayList<L_Resource>();

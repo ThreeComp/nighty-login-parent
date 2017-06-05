@@ -1,11 +1,12 @@
 package com.brokepal.nighty.login.sys.web.login;
 
+import com.brokepal.boite.core.handle.SubjectHandle;
+import com.brokepal.boite.core.handle.SubjectHandleUtil;
+import com.brokepal.boite.exception.ConnectTimeOutException;
+import com.brokepal.boite.web.util.SecurityUtil;
 import com.brokepal.nighty.login.core.dto.OperationResult;
 import com.brokepal.nighty.login.core.exception.RequestParamException;
 import com.brokepal.nighty.login.core.util.CommonUtil;
-import com.brokepal.nighty.login.core.util.RSACryptoUtil;
-import com.brokepal.nighty.login.security.service.SecurityService;
-import com.brokepal.nighty.login.security.util.SecurityUtil;
 import com.brokepal.nighty.login.sys.dto.LoginSuccessResult;
 import com.brokepal.nighty.login.sys.model.L_User;
 import com.brokepal.nighty.login.sys.service.L_UserService;
@@ -30,8 +31,6 @@ public class RegisterController {
 
     @Autowired
     private L_UserService userService;
-    @Autowired
-    private SecurityService securityService;
 
     /**
      * 用户注册接口
@@ -48,7 +47,6 @@ public class RegisterController {
     @RequestMapping(value="/register", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity Login(HttpServletRequest req, HttpServletResponse resp) throws Exception {
-        resp.setHeader("Access-Control-Allow-Origin","*");
 
         String sessionId = req.getParameter("sessionId");
         String nickname = req.getParameter("nickname");
@@ -96,22 +94,23 @@ public class RegisterController {
                 break;
             }
 
+            SubjectHandle subjectHandle = SubjectHandleUtil.createHandle(sessionId);
+            subjectHandle.openSingleDeviceOn();
+
             //判断两次密码是否相同，相同的字符串用相同的密钥加密后也是不同的，所以先解密再比较
-            String str_privateKey = securityService.getPrivateKey(sessionId);
-            RSAPrivateKey rsaPrivateKey;
             String srcPassword = null;
             String srcPasswordConfirm = null;
             try {
-                rsaPrivateKey = (RSAPrivateKey) RSACryptoUtil.getPrivateKey(str_privateKey);
-                srcPassword = RSACryptoUtil.RSADecodeWithPrivateKey(rsaPrivateKey,password);	//解密密码
-                srcPasswordConfirm = RSACryptoUtil.RSADecodeWithPrivateKey(rsaPrivateKey,passwordConfirm);	//解密密码
-            } catch (Exception e) {
+                srcPassword = subjectHandle.decodePassword(password);//解密密码
+                srcPasswordConfirm = subjectHandle.decodePassword(passwordConfirm);
+            } catch (ConnectTimeOutException e) {
                 e.printStackTrace();
-                result = OperationResult.buildFailureResult("加密解密异常，请刷新页面再登录");
+                result = OperationResult.buildFailureResult("建立连接超时，请刷新页面，重新注册");
                 break;
             }
 
-            if (!srcPassword.equals(srcPasswordConfirm)) { //两次输入密码是否相同
+            //两次输入密码是否相同
+            if (!srcPassword.equals(srcPasswordConfirm)) {
                 result = OperationResult.buildFailureResult("两次输入密码不相同");
                 break;
             }
@@ -124,7 +123,7 @@ public class RegisterController {
 
             //通过所有验证，创建用户
             String salt = CommonUtil.createRandomString(10);    //随机生成一个盐
-            String passwordMD5 = securityService.MD5Encrypt(srcPassword,salt);
+            String passwordMD5 = SecurityUtil.MD5EncodePassword(password,salt);
             L_User user = new L_User.Builder()
                     .nickname(nickname).username(username).password(passwordMD5)
                     .salt(salt).email(email).phone(phone).build();
@@ -135,7 +134,7 @@ public class RegisterController {
             }
             //创建成功
             String token = SecurityUtil.generateToken(username,srcPassword); //生成token
-            securityService.login(username,sessionId,token,false);
+            subjectHandle.login(username,password);
             String roleType = "user";
             result = OperationResult.buildSuccessResult(new LoginSuccessResult(token,nickname,username,roleType,user.getResources()));
         } while (false);
@@ -152,7 +151,6 @@ public class RegisterController {
     @RequestMapping(value="/isUsernameExist")
     @ResponseBody
     public ResponseEntity getVerifyCode(HttpServletRequest req, HttpServletResponse resp) throws RequestParamException {
-        resp.setHeader("Access-Control-Allow-Origin","*");
 
         String username = req.getParameter("username");
         if (username == null)
